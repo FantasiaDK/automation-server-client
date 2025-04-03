@@ -7,6 +7,7 @@ from ._config import AutomationServerConfig
 class AutomationServerLoggingHandler(logging.Handler):
     def __init__(self):
         super().__init__()
+        self.setFormatter(logging.Formatter("[%(levelname)s] %(name)s: %(message)s"))
 
     def emit(self, record):
         log_entry = self.format(record)  # Format the log record
