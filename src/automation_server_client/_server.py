@@ -43,7 +43,8 @@ class AutomationServer:
         
         # Set some defaults for known packages
         logging.getLogger("httpx").setLevel(logging.WARNING)
-
+        logging.getLogger("httpcore").setLevel(logging.WARNING)
+             
         return AutomationServer(AutomationServerConfig.session)
 
     def __str__(self):
