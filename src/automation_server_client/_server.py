@@ -4,7 +4,6 @@ from ._config import AutomationServerConfig
 from ._logging import AutomationServerLoggingHandler
 from ._models import Session, Process, Workqueue
 
-
 class AutomationServer:
     session_id = None
 
@@ -38,8 +37,12 @@ class AutomationServer:
 
         logging.basicConfig(
             level=logging.INFO,
-            handlers=[AutomationServerLoggingHandler(), logging.StreamHandler()],
+            handlers=[AutomationServerLoggingHandler()],
+            format="[%(levelname)s] %(name)s: %(message)s",
         )
+        
+        # Set some defaults for known packages
+        logging.getLogger("httpx").setLevel(logging.WARNING)
 
         return AutomationServer(AutomationServerConfig.session)
 

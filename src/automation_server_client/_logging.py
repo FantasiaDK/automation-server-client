@@ -9,7 +9,6 @@ class AutomationServerLoggingHandler(logging.Handler):
         super().__init__()
 
     def emit(self, record):
-        print("Sending log")
         log_entry = self.format(record)  # Format the log record
         log_data = { "workitem_id": 0, "message": log_entry }
 
@@ -26,6 +25,7 @@ class AutomationServerLoggingHandler(logging.Handler):
                 json=log_data,
             )
             response.raise_for_status()
+           
         except Exception as e:
             # Handle any exceptions that occur when sending the log
             print(f"Failed to send log to {self.url}: {e}")
