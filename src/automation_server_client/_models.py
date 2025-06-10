@@ -1,4 +1,3 @@
-import json
 import logging
 import requests
 
@@ -67,7 +66,7 @@ class Workqueue:
         response = requests.post(
             f"{AutomationServerConfig.url}/workqueues/{self.id}/add",
             headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
-            json={"data": json.dumps(data), "reference": reference},
+            json={"data": data, "reference": reference},
         )
         response.raise_for_status()
 
@@ -115,7 +114,7 @@ class Workqueue:
 @dataclass
 class WorkItem:
     id: int
-    data: str
+    data: dict
     reference: str
     locked: bool
     status: str
@@ -124,18 +123,14 @@ class WorkItem:
     created_at: str
     updated_at: str
 
-
-    def get_data_as_dict(self) -> dict:
-        return json.loads(self.data)
-
     def update(self, data: dict):
         response = requests.put(
             f"{AutomationServerConfig.url}/workitems/{self.id}",
             headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
-            json={"data": json.dumps(data), "reference": self.reference},
+            json={"data": data, "reference": self.reference},
         )
         response.raise_for_status()
-        self.data = json.dumps(data)
+        self.data = data
        
 
 
@@ -183,7 +178,7 @@ class WorkItem:
 class Credential:
     id: int
     name: str
-    data: str
+    data: dict
     username: str
     password: str
     deleted: bool
@@ -200,6 +195,3 @@ class Credential:
         response.raise_for_status()
 
         return Credential(**response.json())
-
-    def get_data_as_dict(self) -> dict:
-        return json.loads(self.data)
