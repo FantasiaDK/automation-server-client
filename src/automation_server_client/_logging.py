@@ -18,6 +18,8 @@ class AutomationServerLoggingHandler(logging.Handler):
 
         if AutomationServerConfig.workitem_id is not None:
             log_data["workitem_id"] = AutomationServerConfig.workitem_id
+        else:
+            log_data["workitem_id"] = None
 
         try:
             response = requests.post(
