@@ -1,24 +1,26 @@
 import logging
 import requests
 
-from dataclasses import dataclass
 from datetime import datetime
+from pydantic import BaseModel, ConfigDict
 
 from ._config import AutomationServerConfig
 
-@dataclass
-class Session:
+class Session(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+    
     id: int
     process_id: int
     resource_id: int
-    dispatched_at: str
+    dispatched_at: datetime
     status: str
     stop_requested: bool
     deleted: bool
     parameters: str
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
+    @staticmethod
     def get_session(session_id):
         response = requests.get(
             f"{AutomationServerConfig.url}/sessions/{session_id}",
@@ -26,10 +28,11 @@ class Session:
         )
         response.raise_for_status()
 
-        return Session(**response.json())
+        return Session.model_validate(response.json())
 
-@dataclass
-class Process:
+class Process(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+    
     id: int
     name: str
     description: str
@@ -40,9 +43,10 @@ class Process:
     credentials_id: int
     workqueue_id: int
     deleted: bool
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
+    @staticmethod
     def get_process(process_id):
         response = requests.get(
             f"{AutomationServerConfig.url}/processes/{process_id}",
@@ -50,17 +54,18 @@ class Process:
         )
         response.raise_for_status()
 
-        return Process(**response.json())
+        return Process.model_validate(response.json())
 
-@dataclass
-class Workqueue:
+class Workqueue(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+    
     id: int
     name: str
     description: str
     enabled: bool
     deleted: bool
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
     def add_item(self, data: dict, reference: str):
         response = requests.post(
@@ -70,8 +75,9 @@ class Workqueue:
         )
         response.raise_for_status()
 
-        return WorkItem(**response.json())
+        return WorkItem.model_validate(response.json())
 
+    @staticmethod
     def get_workqueue(workqueue_id):
         response = requests.get(
             f"{AutomationServerConfig.url}/workqueues/{workqueue_id}",
@@ -79,7 +85,7 @@ class Workqueue:
         )
         response.raise_for_status()
 
-        return Workqueue(**response.json())
+        return Workqueue.model_validate(response.json())
 
     def clear_workqueue(self, workitem_status=None, days_older_than=None):
         response = requests.post(
@@ -108,11 +114,12 @@ class Workqueue:
 
         AutomationServerConfig.workitem_id = response.json()["id"]
 
-        return WorkItem(**response.json())
+        return WorkItem.model_validate(response.json())
 
 
-@dataclass
-class WorkItem:
+class WorkItem(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+    
     id: int
     data: dict
     reference: str
@@ -120,8 +127,8 @@ class WorkItem:
     status: str
     message: str
     workqueue_id: int
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
     def update(self, data: dict):
         response = requests.put(
@@ -131,8 +138,6 @@ class WorkItem:
         )
         response.raise_for_status()
         self.data = data
-       
-
 
     def __enter__(self):
         logger = logging.getLogger(__name__)
@@ -174,8 +179,9 @@ class WorkItem:
         self.status = status
         self.message = message
 
-@dataclass
-class Credential:
+class Credential(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+    
     id: int
     name: str
     data: dict
@@ -187,11 +193,10 @@ class Credential:
 
     @staticmethod
     def get_credential(credential: str) -> "Credential":
-        
         response = requests.get(
             f"{AutomationServerConfig.url}/credentials/by_name/{requests.utils.quote(credential)}",
             headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
         )
         response.raise_for_status()
 
-        return Credential(**response.json())
+        return Credential.model_validate(response.json())
