@@ -1,5 +1,6 @@
 import logging
 import requests
+import urllib.parse
 
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
@@ -144,7 +145,7 @@ class WorkItem(BaseModel):
         logger.debug(f"Processing {self}")
         AutomationServerConfig.workitem_id = self.id
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, _traceback):
         logger = logging.getLogger(__name__)
         AutomationServerConfig.workitem_id = None
         if exc_type:
@@ -194,7 +195,7 @@ class Credential(BaseModel):
     @staticmethod
     def get_credential(credential: str) -> "Credential":
         response = requests.get(
-            f"{AutomationServerConfig.url}/credentials/by_name/{requests.utils.quote(credential)}",
+            f"{AutomationServerConfig.url}/credentials/by_name/{urllib.parse.quote(credential)}",
             headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
         )
         response.raise_for_status()
