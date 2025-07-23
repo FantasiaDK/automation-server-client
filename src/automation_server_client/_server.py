@@ -33,6 +33,7 @@ class AutomationServer:
 
         return Workqueue.get_workqueue(self.workqueue_id)
 
+    @staticmethod
     def from_environment():
         AutomationServerConfig.init_from_environment()
 
