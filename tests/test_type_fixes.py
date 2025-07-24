@@ -47,14 +47,4 @@ def test_config_type_annotations():
     
     # Int or None fields
     assert isinstance(AutomationServerConfig.workqueue_override, int) or AutomationServerConfig.workqueue_override is None
-    assert isinstance(AutomationServerConfig.workitem_id, int) or AutomationServerConfig.workitem_id is None
 
-
-def test_workitem_id_assignment():
-    """Test that workitem_id can be assigned int values"""
-    # This should not raise any type errors at runtime
-    AutomationServerConfig.workitem_id = 123
-    assert AutomationServerConfig.workitem_id == 123
-    
-    AutomationServerConfig.workitem_id = None  
-    assert AutomationServerConfig.workitem_id is None

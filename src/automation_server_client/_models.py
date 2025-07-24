@@ -6,7 +6,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 from ._config import AutomationServerConfig
-
+from ._logging import ats_logging_handler
 class Session(BaseModel):
     model_config = ConfigDict(extra='ignore')
     
@@ -103,6 +103,7 @@ class Workqueue(BaseModel):
         return self
 
     def __next__(self):
+        ats_logging_handler.end_workitem()
         response = requests.get(
             f"{AutomationServerConfig.url}/workqueues/{self.id}/next_item",
             headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
@@ -113,9 +114,11 @@ class Workqueue(BaseModel):
 
         response.raise_for_status()
 
-        AutomationServerConfig.workitem_id = response.json()["id"]
+        workitem = WorkItem.model_validate(response.json())
 
-        return WorkItem.model_validate(response.json())
+        ats_logging_handler.start_workitem(workitem.id)
+
+        return workitem
 
 
 class WorkItem(BaseModel):
@@ -131,6 +134,10 @@ class WorkItem(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.logger = logging.getLogger("ats")
+
     def update(self, data: dict):
         response = requests.put(
             f"{AutomationServerConfig.url}/workitems/{self.id}",
@@ -141,18 +148,21 @@ class WorkItem(BaseModel):
         self.data = data
 
     def __enter__(self):
-        logger = logging.getLogger(__name__)
-        logger.debug(f"Processing {self}")
-        AutomationServerConfig.workitem_id = self.id
+        self.logger.debug(f"Processing {self}")
+        ats_logging_handler.start_workitem(self.id)
+   
+        return self
 
     def __exit__(self, exc_type, exc_value, _traceback):
-        logger = logging.getLogger(__name__)
-        AutomationServerConfig.workitem_id = None
         if exc_type:
-            logger.error(
+            self.logger.error(
                 f"An error occurred while processing {self}: {exc_value}"
             )
             self.fail(str(exc_value))
+
+        self.logger.debug(f"Finished processing {self}")
+        ats_logging_handler.end_workitem()
+
 
         # If we are working on an item that is in progress, we will mark it as completed
         if self.status == "in progress":

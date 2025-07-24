@@ -9,8 +9,6 @@ class AutomationServerConfig:
     resource: str | None = None
     process: str | None = None
 
-    workitem_id: int | None = None
-
     workqueue_override: int | None = None
 
     @staticmethod
