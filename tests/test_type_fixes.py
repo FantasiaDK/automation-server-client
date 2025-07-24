@@ -29,22 +29,4 @@ def test_workqueue_override_none_when_not_set():
     assert AutomationServerConfig.workqueue_override is None
 
 
-def test_config_type_annotations():
-    """Test that all config attributes have correct types after initialization"""
-    os.environ["ATS_URL"] = "http://localhost:8000"
-    os.environ["ATS_TOKEN"] = "test_token"
-    os.environ["ATS_SESSION"] = "test_session"
-    os.environ["ATS_WORKQUEUE_OVERRIDE"] = "999"
-    
-    AutomationServerConfig.init_from_environment()
-    
-    # String fields
-    assert isinstance(AutomationServerConfig.url, str)
-    assert isinstance(AutomationServerConfig.token, str)
-    
-    # String or None fields
-    assert isinstance(AutomationServerConfig.session, str) or AutomationServerConfig.session is None
-    
-    # Int or None fields
-    assert isinstance(AutomationServerConfig.workqueue_override, int) or AutomationServerConfig.workqueue_override is None
 

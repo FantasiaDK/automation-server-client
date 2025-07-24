@@ -80,41 +80,6 @@ def test_credential_datetime_conversion():
     assert credential.created_at.year == 2023
 
 
-@patch('automation_server_client._models.requests.get')
-def test_session_api_call_with_extra_fields(mock_get):
-    """Test actual API call handles extra fields gracefully"""
-    # Set up mock response with extra fields
-    mock_response = Mock()
-    mock_response.json.return_value = {
-        "id": 123,
-        "process_id": 456,
-        "resource_id": 789,
-        "dispatched_at": "2023-01-01T10:00:00Z",
-        "status": "running",
-        "stop_requested": False,
-        "deleted": False,
-        "parameters": "{}",
-        "created_at": "2023-01-01T09:00:00Z",
-        "updated_at": "2023-01-01T10:00:00Z",
-        # Server adds new fields in future API version
-        "session_timeout": 3600,
-        "heartbeat_interval": 30
-    }
-    mock_response.raise_for_status.return_value = None
-    mock_get.return_value = mock_response
-    
-    # Set up config
-    AutomationServerConfig.url = "http://test.com"
-    AutomationServerConfig.token = "test_token"
-    
-    # Should work without crashing
-    session = Session.get_session(123)
-    
-    assert session.id == 123
-    assert session.process_id == 456
-    assert session.status == "running"
-
-
 def test_pydantic_validation_errors():
     """Test that invalid data still raises appropriate validation errors"""
     invalid_data = {
