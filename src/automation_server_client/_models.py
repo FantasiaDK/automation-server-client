@@ -7,9 +7,11 @@ from pydantic import BaseModel, ConfigDict
 
 from ._config import AutomationServerConfig
 from ._logging import ats_logging_handler
+
+
 class Session(BaseModel):
-    model_config = ConfigDict(extra='ignore')
-    
+    model_config = ConfigDict(extra="ignore")
+
     id: int
     process_id: int
     resource_id: int
@@ -31,9 +33,10 @@ class Session(BaseModel):
 
         return Session.model_validate(response.json())
 
+
 class Process(BaseModel):
-    model_config = ConfigDict(extra='ignore')
-    
+    model_config = ConfigDict(extra="ignore")
+
     id: int
     name: str
     description: str
@@ -57,9 +60,10 @@ class Process(BaseModel):
 
         return Process.model_validate(response.json())
 
+
 class Workqueue(BaseModel):
-    model_config = ConfigDict(extra='ignore')
-    
+    model_config = ConfigDict(extra="ignore")
+
     id: int
     name: str
     description: str
@@ -122,8 +126,8 @@ class Workqueue(BaseModel):
 
 
 class WorkItem(BaseModel):
-    model_config = ConfigDict(extra='ignore')
-    
+    model_config = ConfigDict(extra="ignore")
+
     id: int
     data: dict
     reference: str
@@ -136,7 +140,6 @@ class WorkItem(BaseModel):
 
     def __init__(self, **data):
         super().__init__(**data)
-       
 
     def update(self, data: dict):
         response = requests.put(
@@ -150,22 +153,19 @@ class WorkItem(BaseModel):
     def __enter__(self):
         logger = logging.getLogger("ats")
         logger.debug(f"Processing {self}")
-        
+
         ats_logging_handler.start_workitem(self.id)
-   
+
         return self
 
     def __exit__(self, exc_type, exc_value, _traceback):
         logger = logging.getLogger("ats")
         if exc_type:
-            logger.error(
-                f"An error occurred while processing {self}: {exc_value}"
-            )
+            logger.error(f"An error occurred while processing {self}: {exc_value}")
             self.fail(str(exc_value))
 
         logger.debug(f"Finished processing {self}")
         ats_logging_handler.end_workitem()
-
 
         # If we are working on an item that is in progress, we will mark it as completed
         if self.status == "in progress":
@@ -193,9 +193,10 @@ class WorkItem(BaseModel):
         self.status = status
         self.message = message
 
+
 class Credential(BaseModel):
-    model_config = ConfigDict(extra='ignore')
-    
+    model_config = ConfigDict(extra="ignore")
+
     id: int
     name: str
     data: dict
