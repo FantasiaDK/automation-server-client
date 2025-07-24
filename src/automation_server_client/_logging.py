@@ -25,7 +25,7 @@ class AutomationServerLoggingHandler(logging.Handler):
 
         try:
             response = requests.post(
-                f"{AutomationServerConfig.url}/sessions/{AutomationServerConfig.session}/log",
+                f"{AutomationServerConfig.url}/audit-logs",
                 headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
                 json=log_data,
             )
