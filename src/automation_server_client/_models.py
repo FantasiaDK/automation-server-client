@@ -136,7 +136,7 @@ class WorkItem(BaseModel):
 
     def __init__(self, **data):
         super().__init__(**data)
-        self.logger = logging.getLogger("ats")
+       
 
     def update(self, data: dict):
         response = requests.put(
@@ -148,19 +148,22 @@ class WorkItem(BaseModel):
         self.data = data
 
     def __enter__(self):
-        self.logger.debug(f"Processing {self}")
+        logger = logging.getLogger("ats")
+        logger.debug(f"Processing {self}")
+        
         ats_logging_handler.start_workitem(self.id)
    
         return self
 
     def __exit__(self, exc_type, exc_value, _traceback):
+        logger = logging.getLogger("ats")
         if exc_type:
-            self.logger.error(
+            logger.error(
                 f"An error occurred while processing {self}: {exc_value}"
             )
             self.fail(str(exc_value))
 
-        self.logger.debug(f"Finished processing {self}")
+        logger.debug(f"Finished processing {self}")
         ats_logging_handler.end_workitem()
 
 
