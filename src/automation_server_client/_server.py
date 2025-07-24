@@ -18,7 +18,7 @@ class AutomationServer:
         if session_id is not None:
             self.session = Session.get_session(session_id)
             self.process = Process.get_process(self.session.process_id)
-            if self.process.workqueue_id > 0:
+            if self.process.workqueue_id is not None:
                 self.workqueue_id = self.process.workqueue_id
         else:
             self.session = None
