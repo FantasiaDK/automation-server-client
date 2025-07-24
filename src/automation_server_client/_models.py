@@ -40,9 +40,9 @@ class Process(BaseModel):
     requirements: str
     target_type: str
     target_source: str
-    target_credentials_id: int
-    credentials_id: int
-    workqueue_id: int
+    target_credentials_id: int | None = None
+    credentials_id: int | None = None
+    workqueue_id: int | None = None
     deleted: bool
     created_at: datetime
     updated_at: datetime
