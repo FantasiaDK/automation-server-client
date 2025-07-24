@@ -1,22 +1,23 @@
 from datetime import datetime
 from logging import LogRecord
 import logging
+from automation_server_client._config import AutomationServerConfig
 from  automation_server_client._logging import ats_logging_handler
 import httpx
 
-base_url = "http://localhost/api"
+from automation_server_client._server import AutomationServer
 
 
-def test_basic_create_log_entry():
+def test_basic_create_log_entry(ats: AutomationServer):
     log_data = {
         "event_timestamp": datetime.now().isoformat(),
-        "message": "Test log entry",
+        "message": "Test log entry - basic call with no extra data",
         "level": "INFO",
         "logger_name": "test_logger",
     }
 
     with httpx.Client() as client:
-        response = client.post(f"{base_url}/audit-logs", json=log_data)
+        response = client.post(f"{AutomationServerConfig.url}/audit-logs", json=log_data)
 
     assert response.status_code == 204
 
@@ -42,11 +43,9 @@ def test_format_log_record():
     assert formatted_log["level"] == "INFO"
     assert formatted_log["logger_name"] == "test_logger"
     assert "structured_data" in formatted_log
-    assert isinstance(formatted_log["structured_data"], dict)
-#    assert "session_id" in formatted_log["structured_data"]
-#    assert formatted_log["structured_data"]["session_id"] is not None
+    assert formatted_log["structured_data"] is None
 
-def test_server_accepts_record():
+def test_server_accepts_record(ats: AutomationServer):
 
     # Need to get a record from the logging system
     record = LogRecord(
@@ -56,12 +55,12 @@ def test_server_accepts_record():
         lineno=42,
         msg="This is a test log message",
         args=(),
-        exc_info=None,
+        exc_info=None
     )
     
     formatted_log = ats_logging_handler._format_log_record(record)
-
+    
     with httpx.Client() as client:
-        response = client.post(f"{base_url}/audit-logs", json=formatted_log)
+        response = client.post(f"{AutomationServerConfig.url}/audit-logs", json=formatted_log)
 
     assert response.status_code == 204

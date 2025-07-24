@@ -49,6 +49,7 @@ class AutomationServerLoggingHandler(logging.Handler):
 
         # Get all extra fields (anything not in standard LogRecord attributes)
         standard_attrs = {
+            "asctime"
             "name",
             "msg",
             "args",
@@ -59,10 +60,13 @@ class AutomationServerLoggingHandler(logging.Handler):
             "module",
             "lineno",
             "funcName",
+            "name",            
             "created",
             "msecs",
             "relativeCreated",
             "taskNamethread",
+            "taskName",
+            "thread",
             "threadName",
             "processName",
             "process",
@@ -71,6 +75,7 @@ class AutomationServerLoggingHandler(logging.Handler):
             "stack_info",
             "message",
         }
+
 
         for key, value in record.__dict__.items():
             if key not in standard_attrs and not key.startswith("_"):
