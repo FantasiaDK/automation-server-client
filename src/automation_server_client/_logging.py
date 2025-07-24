@@ -15,9 +15,6 @@ class AutomationServerLoggingHandler(logging.Handler):
         self.setFormatter(logging.Formatter("[%(levelname)s] %(name)s: %(message)s"))
 
     def emit(self, record):
-        log_entry = self.format(record)  # Format the log record
-        log_data = {"workitem_id": self.workitem_id, "message": log_entry}
-
         log_record = self._format_log_record(record)
 
         if AutomationServerConfig.session is None or AutomationServerConfig.url == "":
@@ -27,7 +24,7 @@ class AutomationServerLoggingHandler(logging.Handler):
             response = requests.post(
                 f"{AutomationServerConfig.url}/audit-logs",
                 headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
-                json=log_data,
+                json=log_record,
             )
             response.raise_for_status()
 
