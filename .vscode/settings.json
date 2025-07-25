@@ -3,5 +3,15 @@
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+
+    // Ignore the following files
+    "files.exclude": {
+        "**/.git": true,
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/build": true,
+        "**/.pytest_cache": true,
+        "**/.ruff_cache": true,
+    },
 }

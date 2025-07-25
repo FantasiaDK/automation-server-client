@@ -20,6 +20,8 @@ Here is a basic example of how to use the package:
     workqueue = ats.workqueue()   
 ```
 
+For a more complete implementation see the [process-template](https://github.com/odense-rpa/process-template).
+
 ## Features
 
 * Interface with the automation-server API
