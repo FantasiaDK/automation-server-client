@@ -11,7 +11,7 @@ def test_session_forward_compatibility():
         "process_id": 100,
         "resource_id": 200,
         "dispatched_at": "2023-01-01T10:00:00Z",
-        "status": "running", 
+        "status": "running",
         "stop_requested": False,
         "deleted": False,
         "parameters": "{}",
@@ -20,12 +20,12 @@ def test_session_forward_compatibility():
         # These fields don't exist in current model but should be ignored
         "new_field_added_by_server": "some_value",
         "another_future_field": {"nested": "data"},
-        "version": "2.0"
+        "version": "2.0",
     }
-    
+
     # Should not raise an exception even with extra fields
     session = Session.model_validate(api_response_data)
-    
+
     # Verify known fields are still accessible
     assert session.id == 1
     assert session.process_id == 100
@@ -48,11 +48,11 @@ def test_workitem_forward_compatibility():
         # Future fields
         "priority": "high",
         "assigned_to": "user123",
-        "metadata": {"extra": "info"}
+        "metadata": {"extra": "info"},
     }
-    
+
     work_item = WorkItem.model_validate(api_response_data)
-    
+
     assert work_item.id == 1
     assert work_item.data == {"key": "value"}
     assert work_item.reference == "test-item"
@@ -69,11 +69,11 @@ def test_credential_datetime_conversion():
         "password": "testpass",
         "deleted": False,
         "created_at": "2023-01-01T09:00:00Z",
-        "updated_at": "2023-01-01T10:00:00Z"
+        "updated_at": "2023-01-01T10:00:00Z",
     }
-    
+
     credential = Credential.model_validate(api_response_data)
-    
+
     assert isinstance(credential.created_at, datetime)
     assert isinstance(credential.updated_at, datetime)
     assert credential.created_at.year == 2023
@@ -87,13 +87,15 @@ def test_pydantic_validation_errors():
         "resource_id": 200,
         # Missing required fields
     }
-    
+
     try:
         Session.model_validate(invalid_data)
         assert False, "Should have raised validation error"
     except Exception as e:
         # Should get pydantic validation error
-        assert "validation error" in str(e).lower() or "Input should be a valid integer" in str(e)
+        assert "validation error" in str(
+            e
+        ).lower() or "Input should be a valid integer" in str(e)
 
 
 def test_backward_compatibility_with_minimal_data():
@@ -108,9 +110,9 @@ def test_backward_compatibility_with_minimal_data():
         "deleted": False,
         "parameters": "{}",
         "created_at": "2023-01-01T09:00:00Z",
-        "updated_at": "2023-01-01T10:00:00Z"
+        "updated_at": "2023-01-01T10:00:00Z",
     }
-    
+
     session = Session.model_validate(minimal_session_data)
     assert session.id == 1
     assert session.status == "running"

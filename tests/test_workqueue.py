@@ -33,12 +33,13 @@ def test_workitem_next(ats: AutomationServer):
     }
 
     workitem = workqueue.add_item(data, reference="test_reference")
-    
+
     item = next(workqueue)
     with item:
         assert item.id == workitem.id
         assert item.data == workitem.data
         assert item.reference == workitem.reference
+
 
 def test_workqueue_empty_iterator(ats: AutomationServer):
     workqueue = ats.workqueue()
@@ -49,6 +50,7 @@ def test_workqueue_empty_iterator(ats: AutomationServer):
 
     with pytest.raises(StopIteration):
         next(workqueue)  # Should raise StopIteration since the queue is empty
+
 
 def test_workqueue_multiple_items(ats: AutomationServer):
     workqueue = ats.workqueue()
@@ -68,5 +70,5 @@ def test_workqueue_multiple_items(ats: AutomationServer):
         with item:
             assert item.data["message"] == f"Test log entry {i}"
             assert item.reference == f"test_reference_{i}"
-    
+
     assert i == 4  # Ensure we iterated through all 5 items
