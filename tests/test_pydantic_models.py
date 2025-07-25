@@ -1,7 +1,6 @@
 from datetime import datetime
-from unittest.mock import Mock, patch
 
-from automation_server_client import Session, WorkItem, Credential, AutomationServerConfig
+from automation_server_client import Session, WorkItem, Credential
 
 
 def test_session_forward_compatibility():

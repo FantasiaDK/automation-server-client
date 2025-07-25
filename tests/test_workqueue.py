@@ -22,8 +22,6 @@ def test_add_workqueue_item(ats: AutomationServer):
 
 
 def test_workitem_next(ats: AutomationServer):
-    e = os.environ
-
     workqueue = ats.workqueue()
     assert workqueue is not None
 

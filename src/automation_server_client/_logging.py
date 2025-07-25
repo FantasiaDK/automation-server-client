@@ -49,8 +49,7 @@ class AutomationServerLoggingHandler(logging.Handler):
 
         # Get all extra fields (anything not in standard LogRecord attributes)
         standard_attrs = {
-            "asctime"
-            "name",
+            "asctimename",
             "msg",
             "args",
             "levelname",
@@ -60,7 +59,7 @@ class AutomationServerLoggingHandler(logging.Handler):
             "module",
             "lineno",
             "funcName",
-            "name",            
+            "name",
             "created",
             "msecs",
             "relativeCreated",
@@ -75,7 +74,6 @@ class AutomationServerLoggingHandler(logging.Handler):
             "stack_info",
             "message",
         }
-
 
         for key, value in record.__dict__.items():
             if key not in standard_attrs and not key.startswith("_"):
@@ -106,21 +104,6 @@ class AutomationServerLoggingHandler(logging.Handler):
             "structured_data": structured_data if structured_data else None,
             "event_timestamp": datetime.fromtimestamp(record.created).isoformat(),
         }
-
-    # def _send_to_api(self, log_data: Dict[str, Any]) -> None:
-    #     """
-    #     Send log data to the API endpoint.
-    #     """
-    #     url = f"{self.api_base_url}/api/log"
-
-    #     response = self.client.post(
-    #         url,
-    #         json=log_data,
-    #         headers={"Content-Type": "application/json"}
-    #     )
-
-    #     # Raise exception if the request failed
-    #     response.raise_for_status()
 
 
 ats_logging_handler = AutomationServerLoggingHandler()
