@@ -1,24 +1,29 @@
 import logging
 import requests
+import urllib.parse
 
-from dataclasses import dataclass
 from datetime import datetime
+from pydantic import BaseModel, ConfigDict
 
 from ._config import AutomationServerConfig
+from ._logging import ats_logging_handler
 
-@dataclass
-class Session:
+
+class Session(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     id: int
     process_id: int
     resource_id: int
-    dispatched_at: str
+    dispatched_at: datetime
     status: str
     stop_requested: bool
     deleted: bool
     parameters: str
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
+    @staticmethod
     def get_session(session_id):
         response = requests.get(
             f"{AutomationServerConfig.url}/sessions/{session_id}",
@@ -26,23 +31,26 @@ class Session:
         )
         response.raise_for_status()
 
-        return Session(**response.json())
+        return Session.model_validate(response.json())
 
-@dataclass
-class Process:
+
+class Process(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     id: int
     name: str
     description: str
     requirements: str
     target_type: str
     target_source: str
-    target_credentials_id: int
-    credentials_id: int
-    workqueue_id: int
+    target_credentials_id: int | None = None
+    credentials_id: int | None = None
+    workqueue_id: int | None = None
     deleted: bool
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
+    @staticmethod
     def get_process(process_id):
         response = requests.get(
             f"{AutomationServerConfig.url}/processes/{process_id}",
@@ -50,17 +58,19 @@ class Process:
         )
         response.raise_for_status()
 
-        return Process(**response.json())
+        return Process.model_validate(response.json())
 
-@dataclass
-class Workqueue:
+
+class Workqueue(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     id: int
     name: str
     description: str
     enabled: bool
     deleted: bool
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
     def add_item(self, data: dict, reference: str):
         response = requests.post(
@@ -70,7 +80,7 @@ class Workqueue:
         )
         response.raise_for_status()
 
-        return WorkItem(**response.json())
+        return WorkItem.model_validate(response.json())
 
     @staticmethod
     def get_workqueue(workqueue_id):
@@ -80,7 +90,7 @@ class Workqueue:
         )
         response.raise_for_status()
 
-        return Workqueue(**response.json())
+        return Workqueue.model_validate(response.json())
 
     def clear_workqueue(self, workitem_status=None, days_older_than=None):
         response = requests.post(
@@ -109,6 +119,7 @@ class Workqueue:
         return self
 
     def __next__(self):
+        ats_logging_handler.end_workitem()
         response = requests.get(
             f"{AutomationServerConfig.url}/workqueues/{self.id}/next_item",
             headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
@@ -119,13 +130,16 @@ class Workqueue:
 
         response.raise_for_status()
 
-        AutomationServerConfig.workitem_id = response.json()["id"]
+        workitem = WorkItem.model_validate(response.json())
 
-        return WorkItem(**response.json())
+        ats_logging_handler.start_workitem(workitem.id)
+
+        return workitem
 
 
-@dataclass
-class WorkItem:
+class WorkItem(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     id: int
     data: dict
     reference: str
@@ -133,8 +147,11 @@ class WorkItem:
     status: str
     message: str
     workqueue_id: int
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
+
+    def __init__(self, **data):
+        super().__init__(**data)
 
     def update(self, data: dict):
         response = requests.put(
@@ -144,22 +161,23 @@ class WorkItem:
         )
         response.raise_for_status()
         self.data = data
-       
-
 
     def __enter__(self):
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger("ats")
         logger.debug(f"Processing {self}")
-        AutomationServerConfig.workitem_id = self.id
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        logger = logging.getLogger(__name__)
-        AutomationServerConfig.workitem_id = None
+        ats_logging_handler.start_workitem(self.id)
+
+        return self
+
+    def __exit__(self, exc_type, exc_value, _traceback):
+        logger = logging.getLogger("ats")
         if exc_type:
-            logger.error(
-                f"An error occurred while processing {self}: {exc_value}"
-            )
+            logger.error(f"An error occurred while processing {self}: {exc_value}")
             self.fail(str(exc_value))
+
+        logger.debug(f"Finished processing {self}")
+        ats_logging_handler.end_workitem()
 
         # If we are working on an item that is in progress, we will mark it as completed
         if self.status == "in progress":
@@ -187,8 +205,10 @@ class WorkItem:
         self.status = status
         self.message = message
 
-@dataclass
-class Credential:
+
+class Credential(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     id: int
     name: str
     data: dict
@@ -200,11 +220,10 @@ class Credential:
 
     @staticmethod
     def get_credential(credential: str) -> "Credential":
-        
         response = requests.get(
-            f"{AutomationServerConfig.url}/credentials/by_name/{requests.utils.quote(credential)}",
+            f"{AutomationServerConfig.url}/credentials/by_name/{urllib.parse.quote(credential)}",
             headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
         )
         response.raise_for_status()
 
-        return Credential(**response.json())
+        return Credential.model_validate(response.json())

@@ -1,7 +1,7 @@
 import logging
 
 from ._config import AutomationServerConfig
-from ._logging import AutomationServerLoggingHandler
+from ._logging import ats_logging_handler
 from ._models import Session, Process, Workqueue
 
 
@@ -18,7 +18,7 @@ class AutomationServer:
         if session_id is not None:
             self.session = Session.get_session(session_id)
             self.process = Process.get_process(self.session.process_id)
-            if self.process.workqueue_id > 0:
+            if self.process.workqueue_id is not None:
                 self.workqueue_id = self.process.workqueue_id
         else:
             self.session = None
@@ -33,18 +33,12 @@ class AutomationServer:
 
         return Workqueue.get_workqueue(self.workqueue_id)
 
+    @staticmethod
     def from_environment():
         AutomationServerConfig.init_from_environment()
 
-        logging.basicConfig(
-            level=logging.INFO,
-            handlers=[AutomationServerLoggingHandler()],
-            format="[%(levelname)s] %(name)s: %(message)s",
-        )
-
-        # Set some defaults for known packages
-        logging.getLogger("httpx").setLevel(logging.WARNING)
-        logging.getLogger("httpcore").setLevel(logging.WARNING)
+        root_logger = logging.getLogger()
+        root_logger.addHandler(ats_logging_handler)
 
         return AutomationServer(AutomationServerConfig.session)
 
