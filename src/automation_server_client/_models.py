@@ -3,6 +3,7 @@ import requests
 import urllib.parse
 
 from datetime import datetime
+from enum import Enum
 from pydantic import BaseModel, ConfigDict
 
 from ._config import AutomationServerConfig
@@ -61,6 +62,14 @@ class Process(BaseModel):
         return Process.model_validate(response.json())
 
 
+class WorkItemStatus(str, Enum):
+    NEW = "new"
+    IN_PROGRESS = "in progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    PENDING_USER_ACTION = "pending user action"
+
+
 class Workqueue(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -92,7 +101,9 @@ class Workqueue(BaseModel):
 
         return Workqueue.model_validate(response.json())
 
-    def clear_workqueue(self, workitem_status=None, days_older_than=None):
+    def clear_workqueue(
+        self, workitem_status: WorkItemStatus = None, days_older_than=None
+    ):
         response = requests.post(
             f"{AutomationServerConfig.url}/workqueues/{self.id}/clear",
             json={
@@ -103,12 +114,51 @@ class Workqueue(BaseModel):
         )
         response.raise_for_status()
 
-    def by_reference(self, reference: str,status: str = None):
-        
+    def get_item_by_reference(
+        self, reference: str, status: WorkItemStatus = None
+    ) -> list["WorkItem"]:
+        """Retrieve work items from the workqueue by their reference identifier.
+
+        This method queries the automation server to find all work items that match
+        the specified reference string. The reference is typically used as a unique
+        identifier or business key for work items, making this method useful for
+        duplicate checking, status verification, or retrieving specific items.
+
+        Args:
+            reference (str): The reference identifier to search for. The reference
+                will be URL-encoded automatically to handle special characters.
+            status (WorkItemStatus, optional): If provided, filters results to only
+                include items with the specified status. Defaults to None (no filtering).
+
+        Returns:
+            list[WorkItem]: A list of WorkItem objects that match the reference.
+                Returns an empty list if no matching items are found.
+
+        Raises:
+            requests.HTTPError: If the API request fails (e.g., network error,
+                authentication failure, or server error).
+
+        Example:
+            >>> workqueue = Workqueue.get_workqueue(123)
+            >>> # Find all items with reference "INV-2023-001"
+            >>> items = workqueue.get_item_by_reference("INV-2023-001")
+            >>>
+            >>> # Find only completed items with the reference
+            >>> completed_items = workqueue.get_item_by_reference(
+            ...     "INV-2023-001",
+            ...     WorkItemStatus.COMPLETED
+            ... )
+            >>>
+            >>> # Check for duplicates before adding a new item
+            >>> existing = workqueue.get_item_by_reference("new-ref")
+            >>> if not existing:
+            ...     workqueue.add_item({"data": "value"}, "new-ref")
+        """
+
         response = requests.get(
             f"{AutomationServerConfig.url}/workqueues/{self.id}/by_reference/{requests.utils.quote(reference)}",
             headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
-            params={"status": status} if status else None
+            params={"status": status} if status else None,
         )
         response.raise_for_status()
 

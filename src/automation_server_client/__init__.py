@@ -1,6 +1,6 @@
 from ._config import AutomationServerConfig
 from ._server import AutomationServer, WorkItemError
-from ._models import Credential, Process, Session, Workqueue, WorkItem
+from ._models import Credential, Process, Session, Workqueue, WorkItem, WorkItemStatus
 
 __all__ = [
     "AutomationServerConfig",
@@ -11,4 +11,5 @@ __all__ = [
     "Workqueue",
     "WorkItem",
     "WorkItemError",
+    "WorkItemStatus",
 ]
