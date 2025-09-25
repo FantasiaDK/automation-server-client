@@ -72,6 +72,7 @@ class Workqueue:
 
         return WorkItem(**response.json())
 
+    @staticmethod
     def get_workqueue(workqueue_id):
         response = requests.get(
             f"{AutomationServerConfig.url}/workqueues/{workqueue_id}",
@@ -91,6 +92,18 @@ class Workqueue:
             headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
         )
         response.raise_for_status()
+
+    def by_reference(self, reference: str,status: str = None):
+        
+        response = requests.get(
+            f"{AutomationServerConfig.url}/workqueues/{self.id}/by_reference/{requests.utils.quote(reference)}",
+            headers={"Authorization": f"Bearer {AutomationServerConfig.token}"},
+            params={"status": status} if status else None
+        )
+        response.raise_for_status()
+
+        items = response.json()
+        return [WorkItem(**item) for item in items]
 
     def __iter__(self):
         return self
