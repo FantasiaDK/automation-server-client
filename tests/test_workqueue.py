@@ -76,6 +76,7 @@ def test_workqueue_multiple_items(ats: AutomationServer):
 
 def test_workqueue_get_by_reference(ats: AutomationServer):
     workqueue = ats.workqueue()
+
     assert workqueue is not None
 
     reference = "unique-test-reference"
@@ -88,17 +89,17 @@ def test_workqueue_get_by_reference(ats: AutomationServer):
 
     workitem = workqueue.add_item(data, reference=reference)
 
-    items = workqueue.get_items_by_reference(reference)
+    items = workqueue.get_item_by_reference(reference)
     assert len(items) >= 1
     assert any(item.id == workitem.id for item in items)
 
-    items = workqueue.get_items_by_reference(reference, status=WorkItemStatus.NEW)
+    items = workqueue.get_item_by_reference(reference, status=WorkItemStatus.NEW)
     assert len(items) >= 1  
     
-    items = workqueue.get_items_by_reference(reference, status=WorkItemStatus.COMPLETED)
-    assert len(items) >= 1  
+    items = workqueue.get_item_by_reference(reference, status=WorkItemStatus.COMPLETED)
+    assert len(items) == 0
 
 
-    items = workqueue.get_items_by_reference("non-existent-reference")
+    items = workqueue.get_item_by_reference("non-existent-reference")
     assert len(items) == 0
     
