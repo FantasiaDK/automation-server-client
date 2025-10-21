@@ -3,6 +3,12 @@ from dotenv import load_dotenv
 
 
 class AutomationServerConfig:
+    """Global configuration holder populated from environment variables.
+
+    Attributes are class-level so they act as a simple singleton used across
+    the library. Call :py:meth:`init_from_environment` during startup to load
+    values from a `.env` file and the process environment.
+    """
     token: str = ""
     url: str = ""
     session: str | None = None
@@ -13,6 +19,12 @@ class AutomationServerConfig:
 
     @staticmethod
     def init_from_environment():
+        """Load configuration from environment and `.env` file.
+
+        Reads ATS_* environment variables and assigns class attributes. Raises
+        ``ValueError`` when `ATS_URL` is not present, because the client
+        cannot operate without a base URL.
+        """
         load_dotenv()
 
         AutomationServerConfig.url = (
